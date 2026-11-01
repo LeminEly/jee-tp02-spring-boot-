@@ -111,36 +111,65 @@ pre-commit install && pre-commit install --hook-type commit-msg
 
 ## Captures d'ecran
 
-Les captures vivent dans `screenshots/`. Chacune se prend en lancant le script
-indique.
+Les images sont affichees ici, et les fichiers vivent dans `screenshots/`.
+Chacune a ete prise en lancant le script indique sous son titre.
 
-| Fichier | Contenu | Script a lancer |
-| --- | --- | --- |
-| `01-ambiguite.png` | La trace de `NoUniqueBeanDefinitionException` et les beans candidats (5.2) | `scripts/demo-ambiguite.sh` |
-| `01b-ambiguite-restauration.png` | La fin du meme script : le depot retrouve ses `@Qualifier` | `scripts/demo-ambiguite.sh` |
-| `02-demarrage-lazy.png` | Les constructeurs au demarrage, `TennisCoach` absent (5.5) | `scripts/run.sh` |
-| `03-endpoints.png` | `/dailyworkout` et `/check` (5.8 et 5.6) | `scripts/demo-endpoints.sh` |
-| `04-bonus.png` | `/allworkouts` et trois appels a `/requestid` (bonus 1 et 2) | `scripts/demo-bonus.sh` |
-| `05-cycle-de-vie.png` | `In constructor`, `In doMyStartupStuff()`, `In doMyCleanupStuff()` (5.7) | `scripts/demo-cycle-de-vie.sh` |
+### 5.2 : l'ambiguite provoquee
 
-Une capture par script, a une exception pres : la demonstration de l'ambiguite
-tient sur deux ecrans, le second montrant que le depot est bien restaure.
+`scripts/demo-ambiguite.sh`
+
+![Trace de NoUniqueBeanDefinitionException avec les beans candidats](screenshots/01-ambiguite.png)
 
 Le message annonce **5 candidats** la ou l'enonce en annonce 4. Le cinquieme est
 `aquatic`, le `SwimCoach` declare par `@Bean` a l'exercice 5.8, qui n'existait
 pas au moment ou l'enonce decrit l'exercice 5.2.
 
+Le script travaille sur une copie temporaire des sources. La fin de son
+execution le montre : le depot a retrouve ses `@Qualifier`.
+
+![Le depot restaure apres la demonstration](screenshots/01b-ambiguite-restauration.png)
+
+### 5.5 : les beans crees au demarrage
+
+`scripts/run.sh`
+
+![Constructeurs au demarrage, TennisCoach absent](screenshots/02-demarrage-lazy.png)
+
+Quatre constructeurs s'affichent. `TennisCoach` n'y est pas : il porte `@Lazy` et
+personne ne le demande encore.
+
+### 5.8 et 5.6 : les deux points d'acces
+
+`scripts/demo-endpoints.sh`
+
+![Reponses de /dailyworkout et /check](screenshots/03-endpoints.png)
+
+### Bonus 1 et 2 : collection injectee et portee requete
+
+`scripts/demo-bonus.sh`
+
+![Les cinq coachs, puis trois identifiants de requete differents](screenshots/04-bonus.png)
+
+### 5.7 : le cycle de vie d'un bean singleton
+
+`scripts/demo-cycle-de-vie.sh`
+
+![Constructeur, doMyStartupStuff, doMyCleanupStuff dans l'ordre](screenshots/05-cycle-de-vie.png)
+
+### Reprendre les captures
+
 Ordre, qui n'est pas indifferent :
 
-1. `scripts/demo-ambiguite.sh`, aucune application n'ayant besoin de tourner.
+1. `scripts/demo-ambiguite.sh`, aucune application n'ayant besoin de tourner et
+   le port 8080 devant etre libre.
 2. `scripts/run.sh` dans un premier terminal, et capturer **tout de suite** le
-   demarrage. Cette capture doit etre prise **avant** l'appel a `/allworkouts`
-   de l'etape 4 : cet appel construit `TennisCoach` et ferait disparaitre ce
-   que la capture doit montrer.
+   demarrage. Cette capture se prend **avant** l'etape 4 : l'appel a
+   `/allworkouts` construit `TennisCoach` et ferait disparaitre ce qu'elle doit
+   montrer.
 3. `scripts/demo-endpoints.sh` dans un second terminal.
 4. `scripts/demo-bonus.sh` dans ce meme second terminal.
-5. Arreter l'application, puis `scripts/demo-cycle-de-vie.sh`, qui gere
-   lui-meme son demarrage et son arret.
+5. Arreter l'application, puis `scripts/demo-cycle-de-vie.sh`, qui gere lui-meme
+   son demarrage et son arret.
 
 Avant de capturer : opacite du terminal a 100 % et autres fenetres fermees, pour
 qu'aucun contenu etranger ne transparaisse.
