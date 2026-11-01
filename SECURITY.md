@@ -8,8 +8,9 @@ ouvrir une issue sur le depot.
 
 ## L'application n'a aucune securite, et c'est voulu
 
-Aucun starter de securite n'est declare. Les trois points d'acces
-(`/dailyworkout`, `/check`, `/allworkouts`) repondent sans authentification.
+Aucun starter de securite n'est declare. Les quatre points d'acces
+(`/dailyworkout`, `/check`, `/allworkouts` et `/requestid`) repondent sans
+authentification.
 
 C'est une decision de l'enonce, pas un oubli. Le TP porte sur le conteneur
 d'inversion de controle, et ses tests de recette s'ecrivent `curl

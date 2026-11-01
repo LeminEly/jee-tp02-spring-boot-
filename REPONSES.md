@@ -286,3 +286,82 @@ exercice.
 l'enonce ecrit `4.0.0`, ses consignes ecrivent `4.0.x`. La 4.0.9 est la derniere
 stable de la branche au 1er novembre 2026, verifiee sur l'API Initializr. Elle
 respecte les deux formulations.
+
+## Extensions de la section 9
+
+Les trois bonus sont faits. Ils vivent dans un commit separe, pour que le
+livrable de base reste identifiable dans l'historique.
+
+### 1. Portee `request`
+
+`RequestIdentity` porte
+`@Scope(value = WebApplicationContext.SCOPE_REQUEST, proxyMode = ScopedProxyMode.TARGET_CLASS)`
+et expose un identifiant tire au hasard a sa construction. Trois appels
+successifs a `/requestid` renvoient trois valeurs differentes.
+
+Le mandataire n'est pas une option. `DemoController` est un singleton, construit
+une fois pour toutes au demarrage. Sans `proxyMode`, le conteneur devrait lui
+injecter une instance de portee requete a un moment ou aucune requete n'existe,
+et s'il y parvenait le controleur garderait cette instance pour toujours. Le
+mandataire resout le probleme autrement : le controleur recoit un objet stable
+qui delegue, a chaque appel, a l'instance de la requete en cours.
+
+C'est la regle generale : un bean de portee courte injecte dans un bean de
+portee longue demande un mandataire.
+
+### 2. Injection d'une collection, et ce qu'elle coute
+
+`/allworkouts` liste les cinq coachs. Spring fournit tous les beans d'un type
+quand le point d'injection en demande une collection, sans qu'on ait a les
+enumerer. `SwimCoach` y figure bien qu'il soit declare par `@Bean` et non par
+`@Component` : ce qui compte est d'etre un bean, pas la facon dont on l'a
+declare.
+
+L'enonce suggere d'injecter `List<Coach>` au constructeur. Mesure faite dans les
+deux sens sur ce projet :
+
+| Injection | Constructeurs executes au demarrage |
+| --- | --- |
+| `List<Coach>` au constructeur | les cinq coachs, `TennisCoach` compris |
+| `ObjectProvider<Coach>` | quatre, `TennisCoach` absent |
+
+Injecter la liste directement **annule l'exercice 5.5**. Pour construire la
+liste, le conteneur doit instancier chaque candidat, y compris celui qu'on avait
+rendu paresseux. Le `@Lazy` n'est pas contourne : il est simplement satisfait,
+puisque quelqu'un demande le bean.
+
+Le controleur recoit donc un `ObjectProvider<Coach>`, qui ne resout la
+collection qu'au premier appel de `/allworkouts`. Verification, dans cet ordre :
+
+| Moment | `TennisCoach` construit |
+| --- | --- |
+| Juste apres le demarrage | 0 fois |
+| Apres un appel a `/dailyworkout` | 0 fois |
+| Apres un appel a `/allworkouts` | 1 fois |
+
+Le bean paresseux est construit exactement quand il devient necessaire, et pas
+avant. C'est la meilleure illustration de `@Lazy` de tout ce TP, et elle vient
+d'un bonus.
+
+### 3. `@Bean(initMethod, destroyMethod)`
+
+`SwimCoach` porte deux methodes ordinaires, `startUp()` et `cleanUp()`, sans
+aucune annotation. `SportConfig` les designe :
+
+```java
+@Bean(name = "aquatic", initMethod = "startUp", destroyMethod = "cleanUp")
+```
+
+Journal mesure :
+
+```
+In constructor: SwimCoach
+In startUp(): SwimCoach
+... usage ...
+In cleanUp(): SwimCoach        a l'arret propre
+```
+
+Le comportement est celui de `@PostConstruct` et `@PreDestroy`, obtenu sans
+toucher a la classe. C'est le meme motif que `@Bean` lui-meme : quand on ne peut
+pas annoter une classe, la configuration prend le relais. Un cas reel typique
+est une classe de bibliotheque dont il faut appeler `close()` a l'arret.

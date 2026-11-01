@@ -10,7 +10,7 @@ public class SportConfig {
 
 	// L'identifiant du bean est donne explicitement. Sans cet argument, il
 	// vaudrait le nom de la methode, soit « swimCoach ».
-	@Bean("aquatic")
+	@Bean(name = "aquatic", initMethod = "startUp", destroyMethod = "cleanUp")
 	public Coach swimCoach() {
 		return new SwimCoach();
 	}

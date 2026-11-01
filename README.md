@@ -41,6 +41,8 @@ L'application ecoute sur le port 8080.
 | --- | --- | --- | --- |
 | GET | `/dailyworkout` | `Swim 1000 meters as a warm up` | 5.1, puis 5.8 |
 | GET | `/check` | `Comparing beans: myCoach == anotherCoach, true` | 5.6 |
+| GET | `/allworkouts` | Les cinq coachs et leur seance | bonus 2 |
+| GET | `/requestid` | Un identifiant different a chaque appel | bonus 1 |
 
 Aucune authentification : contrairement au TP 01, aucun starter de securite
 n'est declare. C'est voulu, et explique dans `SECURITY.md`.
@@ -53,7 +55,8 @@ n'est declare. C'est voulu, et explique dans `SECURITY.md`.
 | `baseballCoach` | `BaseballCoach` | `@Component` | |
 | `tennisCoach` | `TennisCoach` | `@Component` | `@Lazy` : absent du demarrage |
 | `trackCoach` | `TrackCoach` | `@Component` | `@Primary` : choisi par defaut |
-| `aquatic` | `SwimCoach` | `@Bean` dans `SportConfig` | Classe sans annotation, identifiant explicite |
+| `aquatic` | `SwimCoach` | `@Bean` dans `SportConfig` | Classe sans annotation, identifiant explicite, `initMethod` et `destroyMethod` |
+| `requestIdentity` | `RequestIdentity` | `@Component` | Portee requete, servi par un mandataire |
 
 `DemoController` recoit trois parametres : le coach `aquatic` pour
 `/dailyworkout`, et deux fois `cricketCoach` pour que `/check` compare deux
@@ -118,15 +121,36 @@ indique.
 | `03-check.png` | `GET /check` a `true` | `scripts/demo-endpoints.sh` |
 | `04-lazy.png` | Les constructeurs au demarrage, `TennisCoach` absent | `scripts/run.sh` |
 | `05-cycle-de-vie.png` | `In constructor` puis `In doMyStartupStuff()` puis `In doMyCleanupStuff()` | `scripts/demo-cycle-de-vie.sh` |
+| `06-bonus.png` | `/allworkouts` et trois appels a `/requestid` | `scripts/demo-bonus.sh` |
 
 Ordre conseille : `scripts/demo-ambiguite.sh` d'abord, aucune application n'ayant
 besoin de tourner. Puis `scripts/run.sh` dans un terminal pour la capture 04, et
-`scripts/demo-endpoints.sh` dans un second pour 02 et 03. Enfin arreter
-l'application et lancer `scripts/demo-cycle-de-vie.sh`, qui gere lui-meme son
-demarrage et son arret.
+dans un second `scripts/demo-endpoints.sh` pour 02 et 03, puis
+`scripts/demo-bonus.sh` pour 06. Enfin arreter l'application et lancer
+`scripts/demo-cycle-de-vie.sh`, qui gere lui-meme son demarrage et son arret.
+
+La capture 04 se prend **avant** d'appeler `/allworkouts` : cet appel construit
+`TennisCoach`, ce qui est justement ce que le bonus 2 illustre.
 
 Avant de capturer : opacite du terminal a 100 % et autres fenetres fermees, pour
 qu'aucun contenu etranger ne transparaisse.
+
+## Extensions de la section 9
+
+Les trois bonus de l'enonce sont faits, dans un commit separe pour que le
+livrable de base reste identifiable.
+
+| Bonus | Ou |
+| --- | --- |
+| Portee `request` avec mandataire | `RequestIdentity`, point d'acces `/requestid` |
+| Injection d'une collection | `/allworkouts` |
+| `@Bean(initMethod, destroyMethod)` | `SportConfig` et `SwimCoach` |
+
+Le second a demande une decision. Injecter `List<Coach>` au constructeur, comme
+l'enonce le suggere, construit **tous** les coachs au demarrage, `TennisCoach`
+compris, ce qui annule le `@Lazy` de l'exercice 5.5. Mesure faite dans les deux
+sens. Le controleur recoit donc un `ObjectProvider<Coach>`, qui resout la
+collection au premier appel. Detail dans `REPONSES.md`.
 
 ## Reponses aux questions
 
