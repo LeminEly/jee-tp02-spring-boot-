@@ -1,0 +1,94 @@
+name: CI
+
+# Les trois travaux rejouent en integration ce que les controles de pre-commit
+# font en local : qualite, compilation et tests, balayage de secrets. Un
+# contournement local n'echappe donc a rien.
+
+on:
+  push:
+    branches: [main, development]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  qualite:
+    name: Controles de pre-commit
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
+        with:
+          distribution: temurin
+          java-version: '25'
+          cache: maven
+
+      - name: Installer pre-commit
+        run: pipx install pre-commit
+
+      - name: Rejouer tous les controles
+        run: pre-commit run --all-files --show-diff-on-failure
+
+  build:
+    name: Compilation, tests et demarrage de l'archive
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
+        with:
+          distribution: temurin
+          java-version: '25'
+          cache: maven
+
+      - name: Compiler et tester
+        run: ./mvnw -B verify
+
+      - name: Verifier que l'archive existe
+        run: test -f target/springcoredemo-0.0.1-SNAPSHOT.jar
+
+      # Le cas que les tests ne couvrent pas : une application qui compile mais
+      # refuse de demarrer. C'est precisement le risque de ce TP, dont
+      # l'exercice 5.2 consiste a provoquer une erreur de demarrage. Aucun
+      # commit ne doit laisser cet etat derriere lui.
+      - name: Demarrer l'archive et attendre qu'elle soit prete
+        run: |
+          java -jar target/springcoredemo-0.0.1-SNAPSHOT.jar > demarrage.log 2>&1 &
+          pid=$!
+          pret=0
+          for _ in $(seq 1 60); do
+            if grep -q 'Started SpringcoredemoApplication' demarrage.log 2>/dev/null; then
+              pret=1; break
+            fi
+            if ! kill -0 "$pid" 2>/dev/null; then
+              echo "L'application s'est arretee avant d'etre prete."; break
+            fi
+            sleep 1
+          done
+          kill "$pid" 2>/dev/null || true
+          if [ "$pret" -ne 1 ]; then
+            echo "::error::L'archive n'a pas demarre."
+            tail -60 demarrage.log
+            exit 1
+          fi
+          echo "Demarrage confirme."
+
+  secrets:
+    name: Balayage de secrets sur tout l'historique
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - uses: gitleaks/gitleaks-action@ff98106e4c7b2bc287b24eaf42907196329070c7 # v2
