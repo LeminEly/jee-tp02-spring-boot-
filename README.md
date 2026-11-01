@@ -116,13 +116,19 @@ indique.
 
 | Fichier | Contenu | Script a lancer |
 | --- | --- | --- |
-| `01-ambiguite.png` | La trace de `NoUniqueBeanDefinitionException` et les quatre beans (5.2) | `scripts/demo-ambiguite.sh` |
+| `01-ambiguite.png` | La trace de `NoUniqueBeanDefinitionException` et les beans candidats (5.2) | `scripts/demo-ambiguite.sh` |
+| `01b-ambiguite-restauration.png` | La fin du meme script : le depot retrouve ses `@Qualifier` | `scripts/demo-ambiguite.sh` |
 | `02-demarrage-lazy.png` | Les constructeurs au demarrage, `TennisCoach` absent (5.5) | `scripts/run.sh` |
 | `03-endpoints.png` | `/dailyworkout` et `/check` (5.8 et 5.6) | `scripts/demo-endpoints.sh` |
 | `04-bonus.png` | `/allworkouts` et trois appels a `/requestid` (bonus 1 et 2) | `scripts/demo-bonus.sh` |
 | `05-cycle-de-vie.png` | `In constructor`, `In doMyStartupStuff()`, `In doMyCleanupStuff()` (5.7) | `scripts/demo-cycle-de-vie.sh` |
 
-Une capture par script : chaque script tient sur un ecran.
+Une capture par script, a une exception pres : la demonstration de l'ambiguite
+tient sur deux ecrans, le second montrant que le depot est bien restaure.
+
+Le message annonce **5 candidats** la ou l'enonce en annonce 4. Le cinquieme est
+`aquatic`, le `SwimCoach` declare par `@Bean` a l'exercice 5.8, qui n'existait
+pas au moment ou l'enonce decrit l'exercice 5.2.
 
 Ordre, qui n'est pas indifferent :
 
