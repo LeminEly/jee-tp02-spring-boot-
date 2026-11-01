@@ -116,21 +116,25 @@ indique.
 
 | Fichier | Contenu | Script a lancer |
 | --- | --- | --- |
-| `01-ambiguite.png` | La trace de `NoUniqueBeanDefinitionException` et les quatre beans | `scripts/demo-ambiguite.sh` |
-| `02-dailyworkout.png` | `GET /dailyworkout` | `scripts/demo-endpoints.sh` |
-| `03-check.png` | `GET /check` a `true` | `scripts/demo-endpoints.sh` |
-| `04-lazy.png` | Les constructeurs au demarrage, `TennisCoach` absent | `scripts/run.sh` |
-| `05-cycle-de-vie.png` | `In constructor` puis `In doMyStartupStuff()` puis `In doMyCleanupStuff()` | `scripts/demo-cycle-de-vie.sh` |
-| `06-bonus.png` | `/allworkouts` et trois appels a `/requestid` | `scripts/demo-bonus.sh` |
+| `01-ambiguite.png` | La trace de `NoUniqueBeanDefinitionException` et les quatre beans (5.2) | `scripts/demo-ambiguite.sh` |
+| `02-demarrage-lazy.png` | Les constructeurs au demarrage, `TennisCoach` absent (5.5) | `scripts/run.sh` |
+| `03-endpoints.png` | `/dailyworkout` et `/check` (5.8 et 5.6) | `scripts/demo-endpoints.sh` |
+| `04-bonus.png` | `/allworkouts` et trois appels a `/requestid` (bonus 1 et 2) | `scripts/demo-bonus.sh` |
+| `05-cycle-de-vie.png` | `In constructor`, `In doMyStartupStuff()`, `In doMyCleanupStuff()` (5.7) | `scripts/demo-cycle-de-vie.sh` |
 
-Ordre conseille : `scripts/demo-ambiguite.sh` d'abord, aucune application n'ayant
-besoin de tourner. Puis `scripts/run.sh` dans un terminal pour la capture 04, et
-dans un second `scripts/demo-endpoints.sh` pour 02 et 03, puis
-`scripts/demo-bonus.sh` pour 06. Enfin arreter l'application et lancer
-`scripts/demo-cycle-de-vie.sh`, qui gere lui-meme son demarrage et son arret.
+Une capture par script : chaque script tient sur un ecran.
 
-La capture 04 se prend **avant** d'appeler `/allworkouts` : cet appel construit
-`TennisCoach`, ce qui est justement ce que le bonus 2 illustre.
+Ordre, qui n'est pas indifferent :
+
+1. `scripts/demo-ambiguite.sh`, aucune application n'ayant besoin de tourner.
+2. `scripts/run.sh` dans un premier terminal, et capturer **tout de suite** le
+   demarrage. Cette capture doit etre prise **avant** l'appel a `/allworkouts`
+   de l'etape 4 : cet appel construit `TennisCoach` et ferait disparaitre ce
+   que la capture doit montrer.
+3. `scripts/demo-endpoints.sh` dans un second terminal.
+4. `scripts/demo-bonus.sh` dans ce meme second terminal.
+5. Arreter l'application, puis `scripts/demo-cycle-de-vie.sh`, qui gere
+   lui-meme son demarrage et son arret.
 
 Avant de capturer : opacite du terminal a 100 % et autres fenetres fermees, pour
 qu'aucun contenu etranger ne transparaisse.
