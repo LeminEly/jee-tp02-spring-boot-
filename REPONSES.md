@@ -74,6 +74,14 @@ required a single bean, but 4 were found:
 	- trackCoach
 ```
 
+Note sur la capture. Le script `scripts/demo-ambiguite.sh` rejoue l'ambiguite
+sur l'etat final du depot, ou un cinquieme `Coach` existe : `aquatic`, le
+`SwimCoach` declare par `@Bean` a l'exercice 5.8. Le message y annonce donc
+**5 candidats** et non 4. Le script doit en outre retirer le `@Primary` pose sur
+`TrackCoach` a l'exercice 5.4, sans quoi Spring choisirait le bean primaire et
+demarrerait sans se plaindre. La regle, elle, est inchangee : sans qualifier et
+sans primaire, le conteneur refuse de choisir.
+
 Deux facons de la resoudre.
 
 **`@Qualifier("id")` au point d'injection.** On nomme le bean voulu. C'est
