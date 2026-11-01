@@ -86,9 +86,37 @@ jobs:
     name: Balayage de secrets sur tout l'historique
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    env:
+      # Version et empreinte verifiees le 2026-11-01 contre le fichier
+      # checksums.txt publie a cote de l'archive dans la meme version.
+      GITLEAKS_VERSION: 8.24.3
+      GITLEAKS_SHA256: 9991e0b2903da4c8f6122b5c3186448b927a5da4deef1fe45271c3793f4ee29c
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
 
-      - uses: gitleaks/gitleaks-action@ff98106e4c7b2bc287b24eaf42907196329070c7 # v2
+      # Le binaire officiel plutot que gitleaks/gitleaks-action. L'action
+      # derive une plage de commits de l'evenement de poussee et demande
+      # <premier commit>^..HEAD, ce qui n'existe pas quand la poussee contient
+      # le commit racine : git refuse la revision et le travail echoue. Mesure
+      # sur ce depot au premier envoi de development.
+      - name: Installer gitleaks, empreinte verifiee
+        run: |
+          archive="gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
+          curl -sSLo "$archive" \
+            "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/${archive}"
+          echo "${GITLEAKS_SHA256}  ${archive}" | sha256sum -c -
+          tar -xzf "$archive" gitleaks
+          ./gitleaks version
+
+      # gitleaks a renomme « detect » en « git » au fil des versions, sans
+      # retirer l'ancien nom tout de suite. On emploie celui que le binaire
+      # installe accepte, plutot que de parier sur l'un des deux.
+      - name: Balayer tout l'historique
+        run: |
+          if ./gitleaks git --help >/dev/null 2>&1; then
+            ./gitleaks git . --redact --verbose --exit-code 1
+          else
+            ./gitleaks detect --source . --redact --verbose --exit-code 1
+          fi
