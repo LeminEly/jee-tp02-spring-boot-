@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Section 9 : les trois extensions facultatives.
 # Quand : application lancee par scripts/run.sh dans un autre terminal.
-# Capture a prendre : 06-bonus.png
+# Capture a prendre : 04-bonus.png
 #
 # -f sur curl : sans lui, curl rend 0 sur une reponse 4xx et le script
 # afficherait du vide au lieu de signaler l'echec. Registre du socle, A.38.

@@ -71,10 +71,10 @@ fois. Ce qui ne survit pas dans le code final reste lisible ailleurs.
 | Observation | Ou la retrouver |
 | --- | --- |
 | `NoUniqueBeanDefinitionException` de 5.2 | `CoachAmbiguityTest`, et `scripts/demo-ambiguite.sh` |
-| `@Primary` seul, puis la priorite du qualifier | `PrimaryVersusQualifierTest`, commit `feat(5.4)` |
+| `@Primary` seul, puis la priorite du qualifier | `PrimaryVersusQualifierTest`, commit `feat(5.4)`, `scripts/demo-qualifier-primary.sh` |
 | Deux `@Primary`, le piege | `PrimaryVersusQualifierTest` |
 | `spring.main.lazy-initialization=true` | commit `feat(5.5)`, retire au commit suivant |
-| `/check` a `false` en portee prototype | `BeanScopeTest`, commit `feat(5.6)` |
+| `/check` a `false` en portee prototype | `BeanScopeTest`, commit `feat(5.6)`, `scripts/demo-scopes.sh` |
 | `@PreDestroy` ignore sur un prototype | `REPONSES.md`, question 7 |
 
 ## Tests
@@ -129,6 +129,17 @@ execution le montre : le depot a retrouve ses `@Qualifier`.
 
 ![Le depot restaure apres la demonstration](screenshots/01b-ambiguite-restauration.png)
 
+### 5.3 et 5.4 : `@Qualifier`, `@Primary`, puis les deux
+
+`scripts/demo-qualifier-primary.sh`
+
+![/dailyworkout avec @Qualifier, avec @Primary, puis avec les deux](screenshots/06-qualifier-primary.png)
+
+L'etat final qualifie le coach `aquatic` : ces trois reponses n'y existent plus.
+Le script les rejoue depuis les commits des exercices 5.3 et 5.4, extraits dans
+un dossier temporaire. Le dernier cas tranche : quand les deux annotations sont
+presentes, `@Qualifier` l'emporte.
+
 ### 5.5 : les beans crees au demarrage
 
 `scripts/run.sh`
@@ -143,6 +154,15 @@ personne ne le demande encore.
 `scripts/demo-endpoints.sh`
 
 ![Reponses de /dailyworkout et /check](screenshots/03-endpoints.png)
+
+### 5.6 : `/check` en singleton, puis en prototype
+
+`scripts/demo-scopes.sh`
+
+![/check renvoie true en singleton, false en prototype](screenshots/07-scopes.png)
+
+L'etat final remet `CricketCoach` en singleton pour l'exercice 5.7. Le `false`
+est rejoue depuis le commit de l'exercice 5.6, dans un dossier temporaire.
 
 ### Bonus 1 et 2 : collection injectee et portee requete
 
@@ -162,13 +182,16 @@ Ordre, qui n'est pas indifferent :
 
 1. `scripts/demo-ambiguite.sh`, aucune application n'ayant besoin de tourner et
    le port 8080 devant etre libre.
-2. `scripts/run.sh` dans un premier terminal, et capturer **tout de suite** le
-   demarrage. Cette capture se prend **avant** l'etape 4 : l'appel a
+2. `scripts/demo-qualifier-primary.sh`, puis `scripts/demo-scopes.sh`, le port
+   8080 devant toujours etre libre. Chacun s'arrete en erreur, sans rien
+   afficher de trompeur, si une reponse n'est pas celle attendue.
+3. `scripts/run.sh` dans un premier terminal, et capturer **tout de suite** le
+   demarrage. Cette capture se prend **avant** l'etape 5 : l'appel a
    `/allworkouts` construit `TennisCoach` et ferait disparaitre ce qu'elle doit
    montrer.
-3. `scripts/demo-endpoints.sh` dans un second terminal.
-4. `scripts/demo-bonus.sh` dans ce meme second terminal.
-5. Arreter l'application, puis `scripts/demo-cycle-de-vie.sh`, qui gere lui-meme
+4. `scripts/demo-endpoints.sh` dans un second terminal.
+5. `scripts/demo-bonus.sh` dans ce meme second terminal.
+6. Arreter l'application, puis `scripts/demo-cycle-de-vie.sh`, qui gere lui-meme
    son demarrage et son arret.
 
 Avant de capturer : opacite du terminal a 100 % et autres fenetres fermees, pour
